@@ -20,7 +20,7 @@ def define_command_parser():
     parser.add_argument('--arch', action='store', dest='pre_model', default='vgg16')
     parser.add_argument('--learning_rate', action='store', dest='learning_rate', type=float, default=0.01)
     parser.add_argument('--hidden_units', action='store', dest='hidden_units', type=int, default=512)
-    parser.add_argument('--epochs', action='store', dest='epochs', type=int, default=20)
+    parser.add_argument('--epochs', action='store', dest='epochs', type=int, default=2)
     parser.add_argument('--gpu', action='store_true', dest='gpu', default=False)
     
     return parser
@@ -50,7 +50,7 @@ def load_model(pre_model, hidden_units, num_labels):
         ('output', nn.LogSoftmax(dim=1))
     ]))
     model.classifier = classifier
-    return model
+    return model, classifier
 
 def load_data(data_dir):
     # Load data from data_directory and build a DataLoader
@@ -109,10 +109,10 @@ def train_nerual_network(model, data_loader, epochs, print_every, criterion, opt
                 correct = 0
                 total = 0
 
-def save_checkpoint(model, save_dir, class_to_idx):
+def save_checkpoint(model, save_dir, class_to_idx, classifier):
     model.class_to_idx = class_to_idx
     checkpoint = {
-        'classifier': model.classifier,
+        'classifier': classifier,
         'state_dict': model.state_dict(),
         'class_to_idx': model.class_to_idx
     }
@@ -134,19 +134,19 @@ def main():
     train_loader, class_to_idx = load_data(args.data_directory)
     
     # 2.Load the model from args.pre_model.
-    model = load_model(args.pre_model, args.hidden_units, num_labels=102)
+    model, classifier = load_model(args.pre_model, args.hidden_units, num_labels=102)
     print("The model loaded is:\n", model)
 
     # 3.Define the loss function and optimizer
     criterion = nn.NLLLoss()
-    optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.classifier.parameters(), lr=args.learning_rate)
 
     # 4.Train the network
     train_nerual_network(model, train_loader, epochs=args.epochs, print_every=40, criterion=criterion, optimizer=optimizer, device=args.device)
    
     # 5.Save the checkpoint to save_dir
     if(args.save_dir != None):
-        save_checkpoint(model, args.save_dir, class_to_idx)
+        save_checkpoint(model, args.save_dir, class_to_idx, classifier)
 
 if __name__ == '__main__':
     main()
