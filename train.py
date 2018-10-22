@@ -109,9 +109,10 @@ def train_nerual_network(model, data_loader, epochs, print_every, criterion, opt
                 correct = 0
                 total = 0
 
-def save_checkpoint(model, save_dir, class_to_idx, classifier):
+def save_checkpoint(model, save_dir, class_to_idx, classifier, pre_model):
     model.class_to_idx = class_to_idx
     checkpoint = {
+        'class_name': pre_model,
         'classifier': classifier,
         'state_dict': model.state_dict(),
         'class_to_idx': model.class_to_idx
@@ -146,7 +147,7 @@ def main():
    
     # 5.Save the checkpoint to save_dir
     if(args.save_dir != None):
-        save_checkpoint(model, args.save_dir, class_to_idx, classifier)
+        save_checkpoint(model, args.save_dir, class_to_idx, classifier, args.pre_model)
 
 if __name__ == '__main__':
     main()
